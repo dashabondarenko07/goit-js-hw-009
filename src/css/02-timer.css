@@ -1,0 +1,14 @@
+/* timer field value label  */
+.timer{
+    display: flex;
+    margin-top: 15px;
+}
+.field{
+    margin-right: 20px;
+}
+.value{
+    font-size: large;
+}
+.label{
+    font-size: small;
+}
