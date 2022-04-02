@@ -2,10 +2,7 @@
 import flatpickr from 'flatpickr';
 // Дополнительный импорт стилей
 import 'flatpickr/dist/flatpickr.min.css';
-// Notiflix Block Module import
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-// Additional import Notiflix Block Styles
-import 'notiflix/dist/notiflix-notify-aio-3.1.0.min.js';
 
 // global refs
 const refs = {
@@ -23,7 +20,6 @@ const refs = {
   secondsValue: document.querySelector('span.value[data-seconds]'),
 };
 
-// added div.boxElement and disabled buttonStart
 refs.boxEl.className = 'boxElement';
 refs.boxEl.style.height = '40vh';
 
@@ -41,7 +37,6 @@ refs.boxEl.prepend(refs.inputDateTimePicker, refs.btnStart, btnReset);
 refs.boxEl.after(refs.divTimer);
 refs.btnStart.setAttribute('disabled', '');
 
-// flatpickr options and init
 const options = {
   enableTime: true,
   time_24hr: true,
@@ -62,14 +57,12 @@ const options = {
         position: 'center-center',
         backOverlay: true,
       });
-      //   window.alert("Please choose a date in the future");
     }
   },
 };
 
 flatpickr(refs.inputDateTimePicker, options);
 
-// start timer
 refs.btnStart.addEventListener('click', () => {
   refs.btnStart.setAttribute('disabled', '');
   refs.inputDateTimePicker.setAttribute('disabled', '');
@@ -77,21 +70,18 @@ refs.btnStart.addEventListener('click', () => {
   refs.timerId = setInterval(timerRun, 1000);
 });
 
-// reset page
 btnReset.addEventListener('click', () => {
   document.location.reload();
 });
 
 function timerRun() {
   refs.dateNowGlobal = new Date();
-  // console.log(refs.dateNowGlobal);
 
   let deltaTimeMs = refs.selectedDate - refs.dateNowGlobal;
 
   console.log(deltaTimeMs);
   let deltaTimeMsObj = convertMs(deltaTimeMs);
 
-  // adding textContent to html elements days, hours, minutes, seconds
   const { days, hours, minutes, seconds } = deltaTimeMsObj;
 
   refs.daysValue.textContent = addLeadingZero(days);
@@ -99,7 +89,6 @@ function timerRun() {
   refs.minutesValue.textContent = addLeadingZero(minutes);
   refs.secondsValue.textContent = addLeadingZero(seconds);
 
-  // check timer deltaTimeMs < 1s
   if (deltaTimeMs < 1000) {
     Notify.success('Timer is Over! Good luck!', {
       clickToClose: true,
@@ -130,7 +119,7 @@ function convertMs(ms) {
 }
 function addLeadingZero(value) {
   if (value < 10) {
-    return `${value}`.padStart(2, '0'); // "00000value"
+    return `${value}`.padStart(2, '0');
   } else {
     return `${value}`;
   }
