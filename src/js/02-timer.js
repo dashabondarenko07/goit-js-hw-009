@@ -1,41 +1,17 @@
-// Описан в документации
 import flatpickr from 'flatpickr';
-// Дополнительный импорт стилей
 import 'flatpickr/dist/flatpickr.min.css';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import Notiflix from 'notiflix';
 
-// global refs
 const refs = {
-  boxEl: document.createElement('div'),
-  pEl: document.querySelector('p'),
-  inputDateTimePicker: document.querySelector('#datetime-picker'),
-  btnStart: document.querySelector('button[data-start]'),
-  divTimer: document.querySelector('.timer'),
-  selectedDate: 0,
-  dateNowGlobal: 0,
-  timerId: '',
-  daysValue: document.querySelector('span.value[data-days]'),
-  hoursValue: document.querySelector('span.value[data-hours]'),
-  minutesValue: document.querySelector('span.value[data-minutes]'),
-  secondsValue: document.querySelector('span.value[data-seconds]'),
+  startBtn: document.querySelector('button[data-start]'),
+  daysClock: document.querySelector('span[data-days]'),
+  hoursClock: document.querySelector('span[data-hours]'),
+  minutesClock: document.querySelector('span[data-minutes]'),
+  secondsClock: document.querySelector('span[data-seconds]'),
+  inputDate: document.querySelector('#datetime-picker'),
 };
 
-refs.boxEl.className = 'boxElement';
-refs.boxEl.style.height = '40vh';
-
-const btnReset = document.createElement('button');
-btnReset.className = 'resetBtn';
-btnReset.type = 'button';
-btnReset.setAttribute('data-reset', '');
-btnReset.textContent = 'Reset page';
-btnReset.style.backgroundColor = 'red';
-btnReset.style.color = 'black';
-btnReset.style.marginLeft = '40px';
-
-refs.pEl.after(refs.boxEl);
-refs.boxEl.prepend(refs.inputDateTimePicker, refs.btnStart, btnReset);
-refs.boxEl.after(refs.divTimer);
-refs.btnStart.setAttribute('disabled', '');
+refs.startBtn.disabled = true;
 
 const options = {
   enableTime: true,
@@ -43,60 +19,67 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    const dateNow = new Date();
-    refs.selectedDate = selectedDates[0].getTime();
-    console.log(selectedDates[0]);
+    if (selectedDates[0].getTime() < Date.now()) {
+      refs.startBtn.disabled = true;
 
-    if (selectedDates[0].getTime() >= dateNow.getTime()) {
-      refs.btnStart.removeAttribute('disabled');
-    } else {
-      refs.btnStart.setAttribute('disabled', '');
-      Notify.failure('Please choose a date in the future', {
-        clickToClose: true,
-        timeout: 4000,
-        position: 'center-center',
-        backOverlay: true,
-      });
+      return Notiflix.Notify.failure('Please choose a date in the future');
     }
+    refs.startBtn.disabled = false;
+
+    //selectedDates[0].getTime();
+    console.log(selectedDates[0]);
   },
 };
+const flatPickr = flatpickr('#datetime-picker', options);
 
-flatpickr(refs.inputDateTimePicker, options);
-
-refs.btnStart.addEventListener('click', () => {
-  refs.btnStart.setAttribute('disabled', '');
-  refs.inputDateTimePicker.setAttribute('disabled', '');
-
-  refs.timerId = setInterval(timerRun, 1000);
-});
-
-btnReset.addEventListener('click', () => {
-  document.location.reload();
-});
-
-function timerRun() {
-  refs.dateNowGlobal = new Date();
-
-  let deltaTimeMs = refs.selectedDate - refs.dateNowGlobal;
-
-  console.log(deltaTimeMs);
-  let deltaTimeMsObj = convertMs(deltaTimeMs);
-
-  const { days, hours, minutes, seconds } = deltaTimeMsObj;
-
-  refs.daysValue.textContent = addLeadingZero(days);
-  refs.hoursValue.textContent = addLeadingZero(hours);
-  refs.minutesValue.textContent = addLeadingZero(minutes);
-  refs.secondsValue.textContent = addLeadingZero(seconds);
-
-  if (deltaTimeMs < 1000) {
-    Notify.success('Timer is Over! Good luck!', {
-      clickToClose: true,
-      timeout: 4000,
-      position: 'center-center',
-    });
-    clearInterval(refs.timerId);
+class Timer {
+  constructor({ onTick }) {
+    this.isActive = false;
+    this.onTick = onTick;
+    this.intervalId = null;
   }
+  start() {
+    if (this.isActive) {
+      return;
+    }
+    const startTime = flatPickr.selectedDates[0].getTime();
+    this.isActive = true;
+    this.intervalId = setInterval(() => {
+      const currentTime = Date.now();
+      const deltaTime = startTime - currentTime;
+
+      if (deltaTime < 0) {
+        clearInterval(this.intervalId);
+        refs.startBtn.disabled = false;
+        return;
+      }
+      const time = convertMs(deltaTime);
+      this.onTick(time);
+    }, 1000);
+    refs.startBtn.disabled = true;
+  }
+  stop() {
+    clearInterval(this.intervalId);
+    this.isActive = false;
+  }
+}
+
+const timer = new Timer({
+  onTick: updateClockFace,
+});
+
+function updateClockFace({ days, hours, minutes, seconds }) {
+  refs.daysClock.textContent = `${days}`;
+  refs.hoursClock.textContent = `${hours}`;
+  refs.minutesClock.textContent = `${minutes}`;
+  refs.secondsClock.textContent = `${seconds}`;
+}
+
+refs.startBtn.addEventListener('click', timer.start.bind(timer));
+refs.inputDate.addEventListener('click', timer.stop.bind(timer));
+
+function pad(value) {
+  return String(value).padStart(2, '0');
 }
 
 function convertMs(ms) {
@@ -107,20 +90,13 @@ function convertMs(ms) {
   const day = hour * 24;
 
   // Remaining days
-  const days = Math.floor(ms / day);
+  const days = pad(Math.floor(ms / day));
   // Remaining hours
-  const hours = Math.floor((ms % day) / hour);
+  const hours = pad(Math.floor((ms % day) / hour));
   // Remaining minutes
-  const minutes = Math.floor(((ms % day) % hour) / minute);
+  const minutes = pad(Math.floor(((ms % day) % hour) / minute));
   // Remaining seconds
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+  const seconds = pad(Math.floor((((ms % day) % hour) % minute) / second));
 
   return { days, hours, minutes, seconds };
-}
-function addLeadingZero(value) {
-  if (value < 10) {
-    return `${value}`.padStart(2, '0');
-  } else {
-    return `${value}`;
-  }
 }

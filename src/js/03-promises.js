@@ -1,44 +1,45 @@
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
-const formEl = document.querySelector('.form');
+import Notiflix from 'notiflix';
 
-formEl.addEventListener('submit', createOnSubmit);
+const formRef = document.querySelector('.form');
+formRef.addEventListener('submit', makePromises);
 
-function createPromise(position, delay) {
+const createPromise = (position, delay) => {
   return new Promise((resolve, reject) => {
     const shouldResolve = Math.random() > 0.3;
 
-    setTimeout(() => {
-      if (shouldResolve) {
-        resolve({ position, delay });
-      } else {
-        reject({ position, delay });
-      }
-    }, delay);
+    if (shouldResolve) {
+      return resolve({ position, delay });
+    } else {
+      return reject({ position, delay });
+    }
   });
 };
-function createOnSubmit(event) {
-  event.preventDefault();
-  if (!e.target.tagName === 'BUTTON') return;
 
-  const {
-    elements: { delay, step, amount },
-  } = e.currentTarget;
-
-  delayInp = Number(delay.value);
-  stepInp = Number(step.value);
-  amountInp = Number(amount.value);
-
-  for (let i = 1; i <= amountValue; i += 1) {
-    createPromise(i, delayInp)
-      .then(({ position, delay }) => {
-        Notify.success(`✅ Fulfilled promise ${position} in ${delay}ms`);
-      })
-      .catch(({ position, delay }) => {
-        Notify.failure(`❌ Rejected promise ${position} in ${delay}ms`);
-      });
-
-    delayInp += stepInp;
-  };
-
-  e.currentTarget.reset();
+const onMakeSuccess = ({ position, delay }) => {
+  setTimeout(() => {
+    Notiflix.Notify.success(`✅ Fulfilled promise ${position} in ${delay}ms`);
+  }, delay);
 };
+
+const onMakeError = ({ position, delay }) => {
+  setTimeout(() => {
+    Notiflix.Notify.failure(`❌ Rejected promise ${position} in ${delay}ms`);
+  }, delay);
+};
+
+function makePromises(event) {
+  event.preventDefault();
+  const formData = event.currentTarget;
+
+  let delayData = Number(formData['delay'].value);
+  const stepData = Number(formData['step'].value);
+  const amountData = Number(formData['amount'].value);
+  console.log(delayData, stepData, amountData);
+  for (let i = 0; i < amountData; i += 1) {
+    let position = i + 1;
+    console.log(position);
+    let delay = delayData + stepData * i;
+    console.log(delay);
+    createPromise(position, delay).then(onMakeSuccess).catch(onMakeError);
+  }
+}
