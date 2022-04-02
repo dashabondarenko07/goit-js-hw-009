@@ -5,4 +5,4 @@ var t,e=arguments[3];!function(e,i){"function"==typeof t&&t.amd?t([],function(){
 },{}],"GyVV":[function(require,module,exports) {
 "use strict";var e=t(require("notiflix"));function t(e){return e&&e.__esModule?e:{default:e}}const o=document.querySelector(".form");o.addEventListener("submit",s);const l=(e,t)=>new Promise((o,l)=>{return Math.random()>.3?o({position:e,delay:t}):l({position:e,delay:t})}),n=({position:t,delay:o})=>{setTimeout(()=>{e.default.Notify.success(`✅ Fulfilled promise ${t} in ${o}ms`)},o)},i=({position:t,delay:o})=>{setTimeout(()=>{e.default.Notify.failure(`❌ Rejected promise ${t} in ${o}ms`)},o)};function s(e){e.preventDefault();const t=e.currentTarget;let o=Number(t.delay.value);const s=Number(t.step.value),u=Number(t.amount.value);console.log(o,s,u);for(let r=0;r<u;r+=1){let e=r+1;console.log(e);let t=o+s*r;console.log(t),l(e,t).then(n).catch(i)}}
 },{"notiflix":"cwzQ"}]},{},["GyVV"], null)
-//# sourceMappingURL=/goit-js-hw-009/03-promises.f5489bbc.js.map
+//# sourceMappingURL=/goit-js-hw--009/03-promises.a7af2bc3.js.map
