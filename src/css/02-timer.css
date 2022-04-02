@@ -3,7 +3,7 @@
     display: flex;
     margin-top: 15px;
 }
-.field{
+.field:not(last-child){
     margin-right: 20px;
 }
 .value{
